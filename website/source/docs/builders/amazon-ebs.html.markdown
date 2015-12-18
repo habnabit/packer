@@ -69,7 +69,7 @@ builder.
     device mappings to the AMI. The block device mappings allow for keys:
 
     -   `device_name` (string) - The device name exposed to the instance (for
-         example, "/dev/sdh" or "xvdh")
+         example, "/dev/sdh" or "xvdh"). Required when specifying `volume_size`.
     -   `virtual_name` (string) - The virtual device name. See the documentation on
         [Block Device
         Mapping](http://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_BlockDeviceMapping.html)
@@ -278,7 +278,7 @@ Here is an example using the optional AMI tags. This will add the tags
 
 -&gt; **Note:** Packer uses pre-built AMIs as the source for building images.
 These source AMIs may include volumes that are not flagged to be destroyed on
-termiation of the instance building the new image. Packer will attempt to clean
+termination of the instance building the new image. Packer will attempt to clean
 up all residual volumes that are not designated by the user to remain after
 termination. If you need to preserve those source volumes, you can overwrite the
 termination setting by specifying `delete_on_termination=false` in the

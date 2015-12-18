@@ -35,16 +35,6 @@ func newAdapter(done <-chan struct{}, l net.Listener, config *ssh.ServerConfig, 
 func (c *adapter) Serve() {
 	c.ui.Say(fmt.Sprintf("SSH proxy: serving on %s", c.l.Addr()))
 
-	errc := make(chan error, 1)
-
-	go func(errc chan error) {
-		for err := range errc {
-			if err != nil {
-				c.ui.Error(err.Error())
-			}
-		}
-	}(errc)
-
 	for {
 		// Accept will return if either the underlying connection is closed or if a connection is made.
 		// after returning, check to see if c.done can be received. If so, then Accept() returned because
@@ -52,20 +42,22 @@ func (c *adapter) Serve() {
 		conn, err := c.l.Accept()
 		select {
 		case <-c.done:
-			close(errc)
 			return
 		default:
 			if err != nil {
 				c.ui.Error(fmt.Sprintf("listen.Accept failed: %v", err))
 			}
 			go func(conn net.Conn) {
-				errc <- c.Handle(conn, errc)
+				err := c.Handle(conn)
+				if err != nil {
+					c.ui.Error(err.Error())
+				}
 			}(conn)
 		}
 	}
 }
 
-func (c *adapter) Handle(conn net.Conn, errc chan<- error) error {
+func (c *adapter) Handle(conn net.Conn) error {
 	c.ui.Say("SSH proxy: accepted connection")
 	_, chans, reqs, err := ssh.NewServerConn(conn, c.config)
 	if err != nil {
@@ -82,9 +74,12 @@ func (c *adapter) Handle(conn net.Conn, errc chan<- error) error {
 			continue
 		}
 
-		go func(errc chan<- error, ch ssh.NewChannel) {
-			errc <- c.handleSession(ch)
-		}(errc, newChannel)
+		go func(ch ssh.NewChannel) {
+			err := c.handleSession(ch)
+			if err != nil {
+				c.ui.Error(err.Error())
+			}
+		}(newChannel)
 	}
 
 	return nil

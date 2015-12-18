@@ -17,6 +17,7 @@ import (
 	amazonebsbuilder "github.com/mitchellh/packer/builder/amazon/ebs"
 	amazoninstancebuilder "github.com/mitchellh/packer/builder/amazon/instance"
 	ansiblelocalprovisioner "github.com/mitchellh/packer/provisioner/ansible-local"
+	ansibleprovisioner "github.com/mitchellh/packer/provisioner/ansible"
 	artificepostprocessor "github.com/mitchellh/packer/post-processor/artifice"
 	atlaspostprocessor "github.com/mitchellh/packer/post-processor/atlas"
 	chefclientprovisioner "github.com/mitchellh/packer/provisioner/chef-client"
@@ -79,6 +80,7 @@ var Builders = map[string]packer.Builder{
 
 
 var Provisioners = map[string]packer.Provisioner{
+	"ansible":   new(ansibleprovisioner.Provisioner),
 	"ansible-local":   new(ansiblelocalprovisioner.Provisioner),
 	"chef-client":   new(chefclientprovisioner.Provisioner),
 	"chef-solo":   new(chefsoloprovisioner.Provisioner),
